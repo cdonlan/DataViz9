@@ -1,5 +1,6 @@
 import React from 'react';
 import {render} from 'react-dom';
+import d3 from 'd3';
 //import AwesomeComponent from './AwesomeComponent.jsx';
 
 class Chart {
@@ -132,6 +133,7 @@ class CreateGraphButton extends React.Component {
           );
         }
       }
+
       class GraphTypeSelect extends React.Component {
         
           constructor(props) {
@@ -139,7 +141,8 @@ class CreateGraphButton extends React.Component {
             this.handleChange = this.handleChange.bind(this);
           }
 
-          handleChange(value) {
+          handleChange(event) {
+            
             this.props.onTypeChange(event.target.value);
           }
        
@@ -167,6 +170,7 @@ class App extends React.Component {
     this.onCreateGraph = this.onCreateGraph.bind(this);
     this.onCategoryChange = this.onCategoryChange.bind(this);
     this.onColorChange = this.onColorChange.bind(this);
+    this.onTypeChange = this.onTypeChange.bind(this);
     this.state = {category:'ddAverageAge',color:'ddBlue',type:'ddLine'};
   }
   
@@ -179,28 +183,24 @@ class App extends React.Component {
   }
 
   onTypeChange(value){
+    console.log("change");
     this.setState({type: value});
   }
   
   onCreateGraph () {
-    
     var chart = new Chart(this.state.category, this.state.color, this.state.type);
     console.log("chart cat: " + chart.Category);
     console.log("chart color: " + chart.Color);
     console.log("chart type: " + chart.Type);
-      // console.log(this.state.category);
-      // console.log(this.state.color);
-      // console.log(this.state.type);
   }
 
-  render () {
-      
+  render () { 
     const category = this.state.category;
     const color = this.state.color;
     const type = this.state.type;
       return (
         <div>
-          <p> Hello React Project</p>
+          <p>Hello React Project</p>
           <StatisticalCategorySelect categoryValue={category} onCategoryChange={this.onCategoryChange} />
           <GraphColorSelect colorValue={color} onColorChange={this.onColorChange} />
           <GraphTypeSelect typeValue={type} onTypeChange={this.onTypeChange}/>
