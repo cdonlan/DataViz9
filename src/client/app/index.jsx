@@ -47,26 +47,21 @@ class CreateGraphButton extends React.Component {
   
     constructor(props) {
       super(props);
+      this.onClick = this.onClick.bind(this);
     }
     
-    //C
+    //Added to DOM
     componentDidMount(){
       console.log("mount");
     }
-
-    onCreateGraph () {
-      // let newLikesCount = this.state.likesCount + 1;
-      // this.setState({likesCount: newLikesCount});
-      var chart = new Chart("SelectValue", "graphColor", "graphType");
-        console.log("chart cat: " + chart.Category);
-        console.log("chart color: " + chart.Color);
-        console.log("chart type: " + chart.Type);
-      console.log("Button Click!");
-    }
   
+    onClick(event){
+      this.props.onCreateGraph(event.target.value);
+    }
+
     render() {
       return (
-          <div><button onClick={this.onCreateGraph}>Create Graph!</button></div>
+          <div><button onClick={this.onClick}>Create Graph!</button></div>
       );
     }
   }
@@ -75,14 +70,21 @@ class CreateGraphButton extends React.Component {
     
       constructor(props) {
         super(props);
+        this.handleChange = this.handleChange.bind(this);
       }
-   
+      
+      handleChange(event){
+        console.log(event.target.value);
+        this.props.onCategoryChange(event.target.value);
+      }
+
       render() {
+        const category = this.props.category;        
         return (
             <div>
               <div>Statistical Category:</div>
               <div>
-                <select id="selectCategory">
+                <select id="selectCategory" value={category} onChange={this.handleChange}>
                     <option value="ddAverageAge">Average Age</option>
                     <option value="ddRunsPerGame">Runs Per Game</option>
                     <option value="ddRuns">Runs</option>
@@ -105,14 +107,21 @@ class CreateGraphButton extends React.Component {
       
         constructor(props) {
           super(props);
+          this.handleChange = this.handleChange.bind(this);
         }
-     
+        
+        handleChange(event){
+          console.log(event.target.value);
+          this.props.onColorChange(event.target.value);
+        }
+
         render() {
+          const color = this.props.color;
           return (
               <div>
                 <div>Graph Color:</div>
                 <div>
-                  <select id="graphColor">
+                  <select id="graphColor" value={color} onChange={this.handleChange}>
                     <option value="ddBlue">Blue</option>
                     <option value="ddRed">Red</option>
                     <option value="ddGreen">Green</option>
@@ -127,14 +136,20 @@ class CreateGraphButton extends React.Component {
         
           constructor(props) {
             super(props);
+            this.handleChange = this.handleChange.bind(this);
+          }
+
+          handleChange(value) {
+            this.props.onTypeChange(event.target.value);
           }
        
           render() {
+            const type = this.props.type;
             return (
                 <div>
                   <div>Graph Type:</div>
                   <div>
-                    <select id="graphType">
+                    <select id="graphType" value={type} onChange={this.handleChange}>
                       <option value="ddLine">Line</option>
                       <option value="ddBar">Bar</option>
                       <option value="ddArea">Area</option>
@@ -146,14 +161,50 @@ class CreateGraphButton extends React.Component {
         }
 
 class App extends React.Component {
-    render () {
+  
+  constructor(props) {
+    super(props);
+    this.onCreateGraph = this.onCreateGraph.bind(this);
+    this.onCategoryChange = this.onCategoryChange.bind(this);
+    this.onColorChange = this.onColorChange.bind(this);
+    this.state = {category:'ddAverageAge',color:'ddBlue',type:'ddLine'};
+  }
+  
+  onCategoryChange(value){
+    this.setState({category: value});
+  }
+
+  onColorChange(value){
+    this.setState({color: value});
+  }
+
+  onTypeChange(value){
+    this.setState({type: value});
+  }
+  
+  onCreateGraph () {
+    
+    var chart = new Chart(this.state.category, this.state.color, this.state.type);
+    console.log("chart cat: " + chart.Category);
+    console.log("chart color: " + chart.Color);
+    console.log("chart type: " + chart.Type);
+      // console.log(this.state.category);
+      // console.log(this.state.color);
+      // console.log(this.state.type);
+  }
+
+  render () {
+      
+    const category = this.state.category;
+    const color = this.state.color;
+    const type = this.state.type;
       return (
         <div>
           <p> Hello React Project</p>
-          <StatisticalCategorySelect/>
-          <GraphColorSelect/>
-          <GraphTypeSelect/>
-          <CreateGraphButton/>
+          <StatisticalCategorySelect categoryValue={category} onCategoryChange={this.onCategoryChange} />
+          <GraphColorSelect colorValue={color} onColorChange={this.onColorChange} />
+          <GraphTypeSelect typeValue={type} onTypeChange={this.onTypeChange}/>
+          <CreateGraphButton onCreateGraph={this.onCreateGraph}/>
         </div>
       );
     }
