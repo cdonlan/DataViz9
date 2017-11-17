@@ -1,8 +1,10 @@
 import React from 'react';
 import {render} from 'react-dom';
-import d3 from 'd3';
-//import AwesomeComponent from './AwesomeComponent.jsx';
+import * as d3 from "d3";
+import { scaleLinear } from 'd3-scale';
+import Rickshaw from 'rickshaw';
 
+//================================= Chart Class =================================
 class Chart {
   constructor(category, color, type) {
     this._category = category;
@@ -44,6 +46,174 @@ class Chart {
   }
 }
 
+//================================= D3 Stuff =================================
+var ds;
+var graphData = [];
+
+function loaddata(chart) {
+  d3.json("BaseballStats.json", function (data) {
+    var counter = 0;
+    data.forEach(function (d) {
+
+      var item = {};
+      item["x"] = counter;
+
+      //console.log(chart.Category);
+      if (chart.Category == 'ddAverageAge') {
+        item["y"] = d.AverageAge;
+      }
+
+      if (chart.Category.toLowerCase() == 'runs per game') {
+
+        item["y"] = d.RunsPerGame;
+      }
+
+      if (chart.Category.toLowerCase() == 'runs') {
+
+        item["y"] = d.Runs;
+      }
+
+      if (chart.Category.toLowerCase() == 'hits') {
+
+        item["y"] = d.Hits;
+      }
+
+      if (chart.Category.toLowerCase() == 'doubles') {
+
+        item["y"] = d.Doubles;
+      }
+
+      if (chart.Category.toLowerCase() == 'triples') {
+
+        item["y"] = d.Triples;
+      }
+
+      if (chart.Category.toLowerCase() == 'home runs') {
+
+        item["y"] = d.HomeRuns;
+      }
+
+
+      if (chart.Category.toLowerCase() == 'runs batted in') {
+
+        item["y"] = d.RunsBattedIn;
+      }
+
+      if (chart.Category.toLowerCase() == 'stolen bases') {
+
+        item["y"] = d.Stolenbases;
+      }
+
+      if (chart.Category.toLowerCase() == 'walks') {
+
+        item["y"] = d.Walks;
+      }
+
+      if (chart.Category.toLowerCase() == 'strike outs') {
+
+        item["y"] = d.StrikeOuts;
+      }
+
+      if (chart.Category.toLowerCase() == 'batting average') {
+
+        item["y"] = d.BattingAverage;
+      }
+      console.log("here 1");
+      graphData.push(item);
+      counter = counter + 1;
+    });
+    chart.Data = graphData;
+    createGraph(chart);
+
+  });
+}
+
+function getMax(arr, prop) {
+  var max;
+  for (var i = 0; i < arr.length; i++) {
+    if (!max || arr[i][prop] > max[prop]) {
+      max = arr[i];
+    }
+  }
+  return max;
+}
+
+function getMin(arr, prop) {
+  var min;
+  for (var i = 0; i < arr.length; i++) {
+    if (!min || min[prop] > arr[i][prop]) {
+      min = arr[i];
+    }
+  }
+  return min;
+}
+
+function createGraph(chart) {
+  
+        document.getElementById('graph').innerHTML = "";
+        document.getElementById('y_axis').innerHTML = "";
+        document.getElementById('x_axis').innerHTML = "";
+        console.log(chart.Data);
+  
+        //Scale Data
+        var max = getMax(chart.Data, "y");
+        console.log("max is: " + max.y);
+  
+        var min = getMin(chart.Data, "y");
+        console.log("min is: " + min.y);
+  
+        //Create scaled function
+        var scaleFunc = d3.scaleLinear()
+          .domain([min.y, max.y]) //input min/max of sales values
+          .range([0, 300]); //output pixels for SVG
+  
+        //Create Data
+        var graph = new Rickshaw.Graph({
+  
+          element: document.querySelector("#graph"),
+          width: 800,
+          height: 300,
+          renderer: chart.Type,
+          series: [{
+            color: chart.Color,
+            data: JSON.parse(JSON.stringify(chart.Data)),
+            scale: scaleFunc
+          }]
+        });
+  
+        //Create x-axis formatter
+        var format = function (n) {
+          return n + 2000;
+        }
+  
+        //Create x-axis			
+        var x_ticks = new Rickshaw.Graph.Axis.X({
+          graph: graph,
+          orientation: 'bottom',
+          element: document.getElementById('x_axis'),
+          tickFormat: format
+          //pixelsPerTick: 200,
+  
+        });
+  
+        var yAxisFormat = function (n) {
+          //console.log("N is: " +n)
+          var point = scaleFunc.invert(n);
+          //console.log("Scaled N is: " +foo);
+          return Math.round(point * 100) / 100;
+        }
+  
+        var y_ticks = new Rickshaw.Graph.Axis.Y({
+          graph: graph,
+          orientation: 'left',
+          element: document.getElementById('y_axis'),
+          tickFormat: yAxisFormat
+        });
+  
+        graph.render();
+      }
+
+//================================= React Classes =================================
 class CreateGraphButton extends React.Component {
   
     constructor(props) {
@@ -123,10 +293,10 @@ class CreateGraphButton extends React.Component {
                 <div>Graph Color:</div>
                 <div>
                   <select id="graphColor" value={color} onChange={this.handleChange}>
-                    <option value="ddBlue">Blue</option>
-                    <option value="ddRed">Red</option>
-                    <option value="ddGreen">Green</option>
-                    <option value="ddOrange">Orange</option>
+                    <option value="blue">blue</option>
+                    <option value="red">red</option>
+                    <option value="green">green</option>
+                    <option value="orange">orange</option>
                   </select>
                 </div>
               </div>
@@ -153,9 +323,9 @@ class CreateGraphButton extends React.Component {
                   <div>Graph Type:</div>
                   <div>
                     <select id="graphType" value={type} onChange={this.handleChange}>
-                      <option value="ddLine">Line</option>
-                      <option value="ddBar">Bar</option>
-                      <option value="ddArea">Area</option>
+                      <option value="line">line</option>
+                      <option value="bar">bar</option>
+                      <option value="area">area</option>
                     </select> 
                   </div>
                 </div>
@@ -171,7 +341,7 @@ class App extends React.Component {
     this.onCategoryChange = this.onCategoryChange.bind(this);
     this.onColorChange = this.onColorChange.bind(this);
     this.onTypeChange = this.onTypeChange.bind(this);
-    this.state = {category:'ddAverageAge',color:'ddBlue',type:'ddLine'};
+    this.state = {category:'ddAverageAge',color:'blue',type:'line'};
   }
   
   onCategoryChange(value){
@@ -192,6 +362,7 @@ class App extends React.Component {
     console.log("chart cat: " + chart.Category);
     console.log("chart color: " + chart.Color);
     console.log("chart type: " + chart.Type);
+    loaddata(chart);
   }
 
   render () { 
@@ -205,9 +376,18 @@ class App extends React.Component {
           <GraphColorSelect colorValue={color} onColorChange={this.onColorChange} />
           <GraphTypeSelect typeValue={type} onTypeChange={this.onTypeChange}/>
           <CreateGraphButton onCreateGraph={this.onCreateGraph}/>
+          <p></p>
+          <div id="chartblock">
+            <div id="chart_container">
+              <div id="y_axis"></div>
+              <div id="graph"></div>
+              <div id="x_axis"></div>
+            </div>
+          </div>          
         </div>
       );
     }
   }
 
+  //================================= Add Elemet =================================
 render(<App/>, document.getElementById('app'));
